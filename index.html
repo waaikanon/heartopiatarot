@@ -159,9 +159,10 @@
         input:checked + .slider:before { transform: translateX(26px); }
 
         /* ================== TOP CONTROL PANEL ================== */
-        .top-controls { position: absolute; top: 25px; right: 25px; display: flex; gap: 12px; z-index: 100; align-items: center; }
-        .control-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 6px 16px; border-radius: 20px; cursor: pointer; transition: 0.3s; font-family: 'Prompt'; font-size: 13px; display: flex; align-items: center; justify-content: center; }
-        .control-btn.active-lang { background: rgba(255,255,255,0.1); border-color: var(--primary); color: var(--primary); font-weight: 500; box-shadow: inset 0 0 10px rgba(0,242,254,0.2); }
+        .top-controls { position: fixed; top: 25px; right: 25px; display: flex; gap: 12px; z-index: 2000; align-items: center; }
+        .control-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15); color: var(--text-muted); padding: 8px 22px; border-radius: 25px; cursor: pointer; transition: 0.3s; font-family: 'Prompt'; font-size: 15px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .control-btn.active-lang { background: rgba(255,255,255,0.15); border-color: var(--primary); color: var(--primary); font-weight: 500; box-shadow: inset 0 0 10px rgba(0,242,254,0.2), 0 4px 15px rgba(0,0,0,0.4); }
+        .control-btn:hover { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.5); transform: translateY(-2px); }
 
         /* ================== CARD SLOTS (Visuals Phase 3) ================== */
         .reading-area { position: relative; width: 100%; margin: 40px auto; min-height: 450px; display: flex; justify-content: center; align-items: center; }
@@ -232,6 +233,9 @@
         .card-desc { line-height: 1.8; font-size: 15px; margin-bottom: 20px; color: #cbd5e1;}
         .card-advice { color: #f8f9fa; font-weight: 500; background: rgba(255,255,255,0.05); padding: 15px 20px; border-radius: 12px; border-left: 3px solid var(--primary); font-size: 15px; line-height: 1.6;}
 
+        .ai-helper-box { margin-top: 40px; text-align: center; border: 1px solid var(--secondary); background: rgba(0,0,0,0.4); padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-radius: 24px; transition: 0.3s;}
+        .ai-helper-box:hover { border-color: var(--primary); background: rgba(0, 242, 254, 0.05); }
+
         /* ================== MOBILE RESPONSIVENESS ================== */
         @media (max-width: 768px) {
             :root {
@@ -244,8 +248,8 @@
             body { padding: 10px; align-items: stretch; } 
             h1 { font-size: 22px; margin-top: 40px; line-height: 1.3;}
             
-            .top-controls { top: 15px; right: 15px; gap: 8px; }
-            .control-btn { padding: 4px 10px; font-size: 11px; }
+            .top-controls { position: fixed; top: 15px; right: 15px; gap: 10px; z-index: 2000; display: flex; }
+            .control-btn { padding: 6px 16px; font-size: 13px; }
 
             .glass-panel { padding: 25px 15px; margin: 15px auto; border-radius: 18px; }
             .panel-title { font-size: 18px; margin-bottom: 20px; }
@@ -295,6 +299,7 @@
             .modal-card { width: 28%; max-width: 80px; padding: 5px; }
             .modal-card span { font-size: 9px; margin-top: 5px; }
             .close-modal { top: 10px; right: 15px; font-size: 40px; }
+            .ai-helper-box { padding: 20px; }
         }
     </style>
 </head>
@@ -322,8 +327,9 @@
     <div class="hanging-decor d3"><div class="decor-line"></div><div class="decor-star"></div></div>
     <div class="hanging-decor d4"><div class="decor-line"></div><div class="decor-star"></div></div>
 
-    <!-- Top Controls: Language Only -->
+    <!-- Top Controls: Language & How To Use -->
     <div class="top-controls">
+        <button class="control-btn" id="btn-howto" onclick="playClick(); openHowToModal()">📖 วิธีใช้งาน</button>
         <button class="control-btn active-lang" id="btn-th" onclick="setLang('th')">TH</button>
         <button class="control-btn" id="btn-en" onclick="setLang('en')">EN</button>
     </div>
@@ -384,19 +390,38 @@
         <div class="modal-content" id="modal-card-grid"></div>
     </div>
 
+    <!-- ================== HOW TO USE MODAL ================== -->
+    <div id="howto-modal" class="modal">
+        <span class="close-modal" onclick="playClick(); closeHowToModal()">×</span>
+        <div class="glass-panel" style="max-width: 600px; text-align: left; position: relative; margin-top: 15vh; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            <h2 id="ui-howto-title" style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 500;">📖 วิธีใช้งาน</h2>
+            <ul style="line-height: 2; color: var(--text-light); font-size: 15px; padding-left: 20px;">
+                <li id="ui-howto-s1">เลือกหัวข้อคำถามที่คุณสนใจจากหน้าแรก</li>
+                <li id="ui-howto-s2">เลือกรูปแบบการวางไพ่ (Spread) ที่คุณใช้ในเกม</li>
+                <li id="ui-howto-s3">คลิกที่ช่องว่างเพื่อเลือกไพ่ที่สุ่มได้ (สามารถกดปุ่มใต้ภาพไพ่เพื่อเปลี่ยนเป็นไพ่กลับหัวได้)</li>
+                <li id="ui-howto-s4">กดปุ่ม "สรุปคำทำนาย" เพื่อดูผลการวิเคราะห์ทั้งหมด</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ================== FOOTER / CONTACT ================== -->
+    <div style="margin-top: auto; padding: 40px 20px 20px; font-size: 14px; color: var(--text-muted); z-index: 10; text-align: center; width: 100%;">
+        Contact: 
+        <a href="https://github.com/waaikanon/heartopiatarot" target="_blank" style="color: var(--primary); text-decoration: none; transition: 0.3s;" onmouseover="this.style.textShadow='0 0 10px rgba(0, 242, 254, 0.6)'; this.style.color='#fff'" onmouseout="this.style.textShadow='none'; this.style.color='var(--primary)'">
+            https://github.com/waaikanon/heartopiatarot
+        </a>
+    </div>
+
     <script>
         // ================== AUDIO MANAGER ==================
         const clickSound = document.getElementById('clickSound');
         const chimeSound = document.getElementById('chimeSound');
 
-        // ไม่ต้องกำหนด volume ตรงนี้แล้ว เราจะไปกำหนดในฟังก์ชันเพื่อให้ปรับได้แม่นยำขึ้น
         chimeSound.volume = 0.2;  
 
         function playClick() {
-            // รีเซ็ตเวลาเป็น 0 ทำให้กดรัวๆ แล้วเสียงยังติดทันที
             clickSound.currentTime = 0;
-            clickSound.volume = 0.4; // ปรับความดังเพิ่มขึ้น (0.4-0.6 กำลังดีสำหรับเสียงนุ่มๆ)
-            // เล่นเสียง และเพิ่ม console.log เผื่อติดปัญหาเบราว์เซอร์บล็อกจะได้รู้สาเหตุ
+            clickSound.volume = 0.4;
             clickSound.play().catch(e => console.log("Audio error:", e));
         }
 
@@ -437,7 +462,17 @@
                 restartBtn: "เริ่มใหม่ทั้งหมด", modalTitle: "เลือกไพ่ของคุณ", questionPrefix: "คำถาม: ", spreadPrefix: "รูปแบบ: ",
                 clickToSelect: "คลิกเลือกไพ่", btnUpright: "ตั้งตรง", btnReversed: "กลับหัว", alertSelectAll: "กรุณาเลือกไพ่ให้ครบทุกใบ!",
                 sumTitle: "🔮 สรุปดวงภาพรวม (Overall Reading) 🔮", sumIntro: "การวิเคราะห์พลังงานแวดล้อม:",
-                detailTitle: "เจาะลึกความหมายไพ่ทีละใบ", keywordLabel: "คีย์เวิร์ด:", meaningLabel: "ความหมายเชิงลึก:", adviceLabel: "คำแนะนำ:"
+                detailTitle: "เจาะลึกความหมายไพ่ทีละใบ", keywordLabel: "คีย์เวิร์ด:", meaningLabel: "ความหมายเชิงลึก:", adviceLabel: "คำแนะนำ:",
+                howToBtn: "📖 วิธีใช้งาน", howToTitle: "📖 วิธีใช้งาน",
+                howToS1: "เลือกหัวข้อคำถามที่คุณสนใจจากหน้าแรก", 
+                howToS2: "เลือกรูปแบบการวางไพ่ (Spread) ที่คุณใช้ในเกม", 
+                howToS3: "คลิกที่ช่องว่างเพื่อเลือกไพ่ที่สุ่มได้ (สามารถกดปุ่มใต้ภาพไพ่เพื่อเปลี่ยนเป็นไพ่กลับหัวได้)", 
+                howToS4: "กดปุ่ม 'สรุปคำทำนาย' เพื่อดูผลลัพธ์การวิเคราะห์อย่างละเอียด",
+                aiTitle: "🤖 นำผลไปถาม AI ต่อ",
+                aiDesc: "คัดลอกข้อมูลไพ่ทั้งหมดเพื่อนำไปให้ AI (เช่น Gemini, ChatGPT, Claude) ช่วยวิเคราะห์เชิงลึกเพิ่มเติม",
+                aiCopyBtn: "📋 คัดลอก Prompt และข้อมูลไพ่",
+                aiCopiedBtn: "✅ คัดลอกสำเร็จ!",
+                aiPromptIntro: "ช่วยทำหน้าที่เป็นผู้เชี่ยวชาญด้านไพ่ทาโรต์ ช่วยวิเคราะห์ผลการเปิดไพ่ให้ฉันหน่อย\n\nคำถาม: "
             },
             en: {
                 phase1Title: "Choose a topic, let's talk.", phase1Sub: "Get inspired by characters, storylines, and choices...",
@@ -447,7 +482,17 @@
                 restartBtn: "Restart Reading", modalTitle: "Select your card", questionPrefix: "Question: ", spreadPrefix: "Spread: ",
                 clickToSelect: "Select Card", btnUpright: "Upright", btnReversed: "Reversed", alertSelectAll: "Please select all cards!",
                 sumTitle: "🔮 Overall Reading Summary 🔮", sumIntro: "Surrounding Energy Analysis:",
-                detailTitle: "Detailed Card Breakdown", keywordLabel: "Keywords:", meaningLabel: "In-Depth Meaning:", adviceLabel: "Advice:"
+                detailTitle: "Detailed Card Breakdown", keywordLabel: "Keywords:", meaningLabel: "In-Depth Meaning:", adviceLabel: "Advice:",
+                howToBtn: "📖 How to use", howToTitle: "📖 How to use",
+                howToS1: "Choose a question or topic from the main menu.", 
+                howToS2: "Select the card spread layout you used in the game.", 
+                howToS3: "Click on the empty slots to select your drawn cards (click the button below the card to toggle reversed status).", 
+                howToS4: "Click 'Generate Reading' to view your detailed fortune-telling result.",
+                aiTitle: "🤖 Ask AI for Deeper Insights",
+                aiDesc: "Copy your reading data and prompt to ask AI (like Gemini, ChatGPT, Claude) for a deeper analysis.",
+                aiCopyBtn: "📋 Copy Prompt & Card Data",
+                aiCopiedBtn: "✅ Copied to clipboard!",
+                aiPromptIntro: "Please act as an expert Tarot reader and analyze my reading.\n\nQuestion: "
             }
         };
 
@@ -666,6 +711,14 @@
             document.getElementById('ui-btn-restart').innerText = uiText[lang].restartBtn;
             document.getElementById('ui-modal-title').innerText = uiText[lang].modalTitle;
 
+            // อัปเดตภาษาหน้าวิธีใช้งาน
+            document.getElementById('btn-howto').innerText = uiText[lang].howToBtn;
+            document.getElementById('ui-howto-title').innerText = uiText[lang].howToTitle;
+            document.getElementById('ui-howto-s1').innerText = uiText[lang].howToS1;
+            document.getElementById('ui-howto-s2').innerText = uiText[lang].howToS2;
+            document.getElementById('ui-howto-s3').innerText = uiText[lang].howToS3;
+            document.getElementById('ui-howto-s4').innerText = uiText[lang].howToS4;
+
             renderQuestions();
             renderSpreadButtons();
             
@@ -795,6 +848,10 @@
         }
 
         function closeModal() { document.getElementById('card-modal').style.display = 'none'; }
+        
+        // ฟังก์ชัน เปิด/ปิด หน้าต่างวิธีใช้งาน
+        function openHowToModal() { document.getElementById('howto-modal').style.display = 'block'; }
+        function closeHowToModal() { document.getElementById('howto-modal').style.display = 'none'; }
 
         function pickCard(name) {
             playChime();
@@ -878,6 +935,40 @@
             `;
         }
 
+        // ฟังก์ชันสำหรับจัดเรียงข้อความและ Copy ไปให้ AI
+        function copyReadingToClipboard() {
+            let config = spreadsConfig[activeSpreadId];
+            let text = uiText[currentLang].aiPromptIntro + `"${userQuestionObj[currentLang]}"\n`;
+            text += `${uiText[currentLang].spreadPrefix} ${config.name[currentLang]}\n\n`;
+
+            text += `${currentLang === 'th' ? 'ไพ่ที่สุ่มได้:' : 'Cards drawn:'}\n`;
+            selectedCards.forEach((card, index) => {
+                let posText = config.labels[currentLang][index];
+                let statusText = card.status === 'upright' ? '' : (currentLang === 'th' ? '(กลับหัว)' : '(Reversed)');
+                text += `${index+1}. ${posText} : ${card.name} ${statusText}\n`;
+            });
+
+            text += `\n${currentLang === 'th' ? 'ช่วยวิเคราะห์ความหมายโดยรวมแบบเจาะลึก เชื่อมโยงความหมายไพ่แต่ละใบเข้าด้วยกัน และให้คำแนะนำที่นำไปใช้ได้จริงที' : 'Please provide a comprehensive analysis, connect the meaning of the cards, and give me some practical advice.'}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                let btn = document.getElementById('ui-btn-copy');
+                if(btn) {
+                    let oldText = btn.innerText;
+                    btn.innerHTML = `<strong>${uiText[currentLang].aiCopiedBtn}</strong>`;
+                    btn.style.backgroundColor = 'var(--primary)';
+                    btn.style.color = '#000';
+                    setTimeout(() => {
+                        btn.innerText = uiText[currentLang].aiCopyBtn;
+                        btn.style.backgroundColor = 'transparent';
+                        btn.style.color = 'var(--primary)';
+                    }, 2500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert("Copy failed!");
+            });
+        }
+
         function generateReading(scrollToTop = true) {
             playChime();
             if (selectedCards.includes(null)) { alert(uiText[currentLang].alertSelectAll); return; }
@@ -912,6 +1003,22 @@
                 `;
             });
 
+            // ส่วนของ AI Helper UI ด้านล่างสุดของคำทำนาย
+            finalHTML += `
+                <div class="ai-helper-box">
+                    <h3 style="color: var(--primary); margin-top: 0; font-size: 20px;">${uiText[currentLang].aiTitle}</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">${uiText[currentLang].aiDesc}</p>
+                    
+                    <button class="btn btn-outline" style="border-color: var(--primary); color: var(--primary); font-weight: 500; font-size: 15px; padding: 12px 30px;" onclick="playClick(); copyReadingToClipboard()" id="ui-btn-copy">${uiText[currentLang].aiCopyBtn}</button>
+                    
+                    <div style="margin-top: 25px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <a href="https://gemini.google.com/" target="_blank" class="control-btn" style="text-decoration: none; color: #fff;">✨ Gemini</a>
+                        <a href="https://chatgpt.com/" target="_blank" class="control-btn" style="text-decoration: none; color: #fff;">🟢 ChatGPT</a>
+                        <a href="https://claude.ai/" target="_blank" class="control-btn" style="text-decoration: none; color: #fff;">🟠 Claude</a>
+                    </div>
+                </div>
+            `;
+
             resultBox.innerHTML = finalHTML;
             
             if(!document.getElementById('phase-4').classList.contains('active')) {
@@ -920,6 +1027,51 @@
             
             resultBox.style.display = 'block';
             if(scrollToTop) window.scrollTo(0, 0);
+        }
+
+        // ฟังก์ชันสำหรับจัดเรียงข้อความและ Copy ไปให้ AI
+        function copyReadingToClipboard() {
+            let config = spreadsConfig[activeSpreadId];
+            let text = uiText[currentLang].aiPromptIntro + `"${userQuestionObj[currentLang]}"\n\n`;
+            
+            // เพิ่มคำอธิบายให้ AI รู้ตัวว่านี่คือรูปแบบพิเศษที่กำหนดความหมายตำแหน่งไว้แล้ว
+            if (currentLang === 'th') {
+                text += `ฉันได้เปิดไพ่รูปแบบเฉพาะ (Custom Spread) ชื่อว่า "${config.name.th}" โดยมีไพ่และความหมายของแต่ละตำแหน่งดังนี้:\n\n`;
+            } else {
+                text += `I have drawn a custom spread named "${config.name.en}" with the following specific position meanings:\n\n`;
+            }
+
+            selectedCards.forEach((card, index) => {
+                let posText = config.labels[currentLang][index];
+                let statusText = card.status === 'upright' ? '' : (currentLang === 'th' ? '(กลับหัว)' : '(Reversed)');
+                
+                // แก้ไขตรงนี้: แยกภาษาไทยกับอังกฤษให้ชัดเจน
+                if (currentLang === 'th') {
+                    text += `ตำแหน่งที่ ${index+1} [${posText}] : ได้ไพ่ ${card.name} ${statusText}\n`;
+                } else {
+                    text += `Position ${index+1} [${posText}] : ${card.name} ${statusText}\n`;
+                }
+            });
+
+            // สั่งให้ AI อ่านตามตำแหน่งที่ระบุอย่างเคร่งครัด
+            text += `\n${currentLang === 'th' ? 'รบกวนช่วยวิเคราะห์ความหมายโดยรวมแบบเจาะลึก โดยอ่านไพ่ตามความหมายของตำแหน่งที่ระบุไว้ด้านบน เชื่อมโยงเรื่องราวให้หน่อย และขอคำแนะนำที่นำไปใช้ได้จริงครับ' : 'Please provide a comprehensive analysis strictly based on the specific position meanings provided above. Connect the cards into a cohesive narrative and give me practical advice.'}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                let btn = document.getElementById('ui-btn-copy');
+                if(btn) {
+                    btn.innerHTML = `<strong>${uiText[currentLang].aiCopiedBtn}</strong>`;
+                    btn.style.backgroundColor = 'var(--primary)';
+                    btn.style.color = '#000';
+                    setTimeout(() => {
+                        btn.innerText = uiText[currentLang].aiCopyBtn;
+                        btn.style.backgroundColor = 'transparent';
+                        btn.style.color = 'var(--primary)';
+                    }, 2500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert("Copy failed!");
+            });
         }
 
         // Initialize
