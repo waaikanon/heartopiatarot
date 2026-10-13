@@ -11,7 +11,7 @@
             --bg-top: #1a1b41;
             --bg-mid: #151630;
             --bg-bottom: #0d0e1f;
-            --primary: #00f2fe;    
+            --primary: #00f2fe;  
             --secondary: #4facfe;  
             --accent: #f9d423;     
             --text-light: #f8f9fa;
@@ -30,12 +30,27 @@
         
         * { box-sizing: border-box; }
         
+        /* แก้ปัญหาขอบจอมือถือเด้งเป็นสีขาว */
+        html { 
+            background-color: var(--bg-bottom); 
+        }
+        
         body {
             font-family: 'Prompt', sans-serif; margin: 0; padding: 20px; min-height: 100vh;
-            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 50%, var(--bg-bottom) 100%);
+            background: transparent; /* โปร่งใสเพื่อให้มองเห็นดาว */
             color: var(--text-light); text-align: center;
             overflow-x: hidden; position: relative;
             display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* เลเยอร์พื้นหลังไล่สีแบบยึดติดหน้าจอ */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 50%, var(--bg-bottom) 100%);
+            z-index: -5;
+            pointer-events: none;
         }
 
         /* ================== MAGICAL SCENERY ================== */
@@ -160,7 +175,6 @@
 
         /* ================== TOP CONTROL PANEL ================== */
         .top-controls { position: fixed; top: 25px; right: 25px; display: flex; gap: 12px; z-index: 2000; align-items: center; }
-        /* เปลี่ยน font-size จาก 15px เป็น 16px และขยาย padding เล็กน้อย */
         .control-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15); color: var(--text-muted); padding: 9px 24px; border-radius: 25px; cursor: pointer; transition: 0.3s; font-family: 'Prompt'; font-size: 16px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
         .control-btn.active-lang { background: rgba(255,255,255,0.15); border-color: var(--primary); color: var(--primary); font-weight: 500; box-shadow: inset 0 0 10px rgba(0,242,254,0.2), 0 4px 15px rgba(0,0,0,0.4); }
         .control-btn:hover { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.5); transform: translateY(-2px); }
@@ -250,7 +264,6 @@
             h1 { font-size: 22px; margin-top: 40px; line-height: 1.3;}
             
             .top-controls { position: fixed; top: 15px; right: 15px; gap: 10px; z-index: 2000; display: flex; }
-            /* เปลี่ยน font-size จาก 13px เป็น 14px และขยาย padding เล็กน้อย */
             .control-btn { padding: 7px 18px; font-size: 14px; }
 
             .glass-panel { padding: 25px 15px; margin: 15px auto; border-radius: 18px; }
@@ -308,12 +321,9 @@
 <body>
 
     <!-- ================== AUDIO SYSTEM ================== -->
-    <!-- เสียง UI Click (Soft tap) -->
     <audio id="clickSound" preload="auto">
         <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg">
     </audio>
-    
-    <!-- เสียง UI Select (Chime เบาๆ ตอนเลือกไพ่/เปิดผล) -->
     <audio id="chimeSound" preload="auto">
         <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg">
     </audio>
@@ -393,10 +403,8 @@
     </div>
 
     <!-- ================== HOW TO USE MODAL ================== -->
-    <!-- สังเกต onclick ตรงนี้ที่เพิ่มเข้ามา -->
     <div id="howto-modal" class="modal" onclick="playClick(); closeHowToModal()">
         <span class="close-modal" onclick="playClick(); closeHowToModal()">×</span>
-        <!-- สังเกต onclick="event.stopPropagation()" ตรงนี้ ป้องกันการปิดเมื่อกดโดนเนื้อหา -->
         <div class="glass-panel" style="max-width: 600px; text-align: left; position: relative; margin-top: 15vh; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
             <h2 id="ui-howto-title" style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 500;">📖 วิธีใช้งาน</h2>
             <ul style="line-height: 2; color: var(--text-light); font-size: 15px; padding-left: 20px;">
